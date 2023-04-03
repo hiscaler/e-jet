@@ -45,7 +45,7 @@ func (s labelService) GetLabel(req LabelRequest) (labelResponse LabelResponse, e
 
 	resp, err := s.httpClient.R().
 		SetBody(req).
-		Post("/getToken")
+		Post("/getLabel")
 	if err != nil {
 		return
 	}
@@ -60,6 +60,8 @@ func (s labelService) GetLabel(req LabelRequest) (labelResponse LabelResponse, e
 	if err != nil {
 		return
 	}
+
+	labelResponse = res.Result
 
 	return
 }

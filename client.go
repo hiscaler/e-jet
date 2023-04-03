@@ -17,15 +17,17 @@ const (
 const (
 	OK                   = 200 // 无错误
 	BadRequestError      = 400 // Bad Request
+	UnauthorizedError    = 401 // 授权失败
 	ServiceNotFoundError = 404 // 服务不存在
 	InternalError        = 500 // 内部错误，数据库异常
 )
 
 type EJet struct {
-	config     *config.Config // 配置
-	logger     Logger         // 日志
-	httpClient *resty.Client  // Resty Client
-	Services   services       // API Services
+	config      *config.Config // 配置
+	logger      Logger         // 日志
+	httpClient  *resty.Client  // Resty Client
+	accessToken string         // Access Token
+	Services    services       // API Services
 }
 
 func NewEJet(cfg config.Config) *EJet {
@@ -45,20 +47,35 @@ func NewEJet(cfg config.Config) *EJet {
 
 	httpClient.
 		SetTimeout(time.Duration(cfg.Timeout) * time.Second).
+		OnBeforeRequest(func(client *resty.Client, request *resty.Request) error {
+			if request.URL == "/getToken" {
+				return nil
+			}
+
+			if ejetClient.accessToken == "" {
+				authResponse, e := ejetClient.Services.Auth.GetToken(AuthRequest{
+					AppToken: cfg.AppToken,
+					AppKey:   cfg.AppKey,
+				})
+				if e != nil {
+					ejetClient.logger.Errorf("Auth error: %s", e.Error())
+					return e
+				}
+				ejetClient.accessToken = authResponse.AccessToken
+			}
+			request.SetHeaders(map[string]string{
+				"Authorization": ejetClient.accessToken,
+			})
+			return nil
+		}).
 		OnAfterResponse(func(client *resty.Client, response *resty.Response) (err error) {
 			if response.IsError() {
 				r := struct {
-					Status int    `json:"status"`
-					Msg    string `json:"msg,omitempty"`
-					Error  string `json:"error,omitempty"`
-					Path   string `json:"path"`
+					Code    int    `json:"code"`
+					Message string `json:"msg,omitempty"`
 				}{}
 				if err = json.Unmarshal(response.Body(), &r); err == nil {
-					errorMessage := r.Msg
-					if errorMessage == "" {
-						errorMessage = r.Error
-					}
-					err = ErrorWrap(r.Status, fmt.Sprintf("[ %s ] %s", r.Path, errorMessage))
+					err = ErrorWrap(r.Code, r.Message)
 				}
 			}
 			return
@@ -102,6 +119,10 @@ func ErrorWrap(code int, message string) error {
 	case BadRequestError:
 		if message == "" {
 			message = "Bad Request"
+		}
+	case UnauthorizedError:
+		if message == "" {
+			message = "Unauthorized"
 		}
 	case ServiceNotFoundError:
 		if message == "" {

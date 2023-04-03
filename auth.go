@@ -22,7 +22,7 @@ func (m AuthRequest) Validate() error {
 }
 
 type UserInformation struct {
-	UID           string `json:"u_id"`            // ID
+	UID           int    `json:"u_id"`            // ID
 	UAccount      string `json:"u_account"`       // 帐号
 	UCustomerCode string `json:"u_customer_code"` // 客户代码
 }
@@ -61,6 +61,8 @@ func (s authService) GetToken(req AuthRequest) (authResponse AuthResponse, err e
 	if err != nil {
 		return
 	}
+
+	authResponse = res.Result
 
 	return
 }
