@@ -13,5 +13,6 @@ type service struct {
 
 // API Services
 type services struct {
+	Auth  authService
 	Label labelService
 }

@@ -73,6 +73,7 @@ func NewEJet(cfg config.Config) *EJet {
 		httpClient: ejetClient.httpClient,
 	}
 	ejetClient.Services = services{
+		Auth:  (authService)(xService),
 		Label: (labelService)(xService),
 	}
 	return ejetClient
