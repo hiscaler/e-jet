@@ -1,8 +1,8 @@
 package config
 
 type Config struct {
-	Debug    bool   // 是否启用调试模式
-	Timeout  int    // HTTP 超时设定（单位：秒）
-	AppToken string // App Token
-	AppKey   string // App Key
+	Debug    bool   `json:"debug"`     // 是否启用调试模式
+	Timeout  int    `json:"timeout"`   // HTTP 超时设定（单位：秒）
+	AppToken string `json:"app_token"` // App Token
+	AppKey   string `json:"app_key"`   // App Key
 }

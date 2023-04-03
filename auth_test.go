@@ -15,22 +15,23 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(fmt.Sprintf("Read config error: %s", err.Error()))
 	}
-	c := struct {
-		Debug    bool
-		Sandbox  bool
-		AppToken string
-		AppKey   string
-	}{}
+	var c config.Config
 	err = json.Unmarshal(b, &c)
 	if err != nil {
 		panic(fmt.Sprintf("Parse config file error: %s", err.Error()))
 	}
-
-	cfg := config.Config{
-		Debug:    c.Debug,
-		AppToken: c.AppToken,
-		AppKey:   c.AppKey,
-	}
-	ejetClient = NewEJet(cfg)
+	ejetClient = NewEJet(c)
 	m.Run()
+}
+
+func Test_authService_GetToken(t *testing.T) {
+	req := AuthRequest{
+		AppToken: ejetClient.config.AppToken,
+		AppKey:   ejetClient.config.AppKey,
+	}
+	resp, err := ejetClient.Services.Auth.GetToken(req)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(resp.AccessToken)
 }

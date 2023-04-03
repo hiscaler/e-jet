@@ -32,8 +32,8 @@ type AuthResponse struct {
 	UserInfo    UserInformation `json:"user_info"`    // 用户信息
 }
 
-// GetLabel 获取面单
-func (s authService) GetLabel(req AuthRequest) (authResponse AuthResponse, err error) {
+// GetToken 获取授权
+func (s authService) GetToken(req AuthRequest) (authResponse AuthResponse, err error) {
 	if err = req.Validate(); err != nil {
 		return
 	}
