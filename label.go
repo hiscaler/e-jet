@@ -10,12 +10,14 @@ import (
 type labelService service
 
 type LabelRequest struct {
-	OrderCode string `json:"order_code"` // 订单号
+	OrderCode   string `json:"order_code,omitempty"`   // 订单号
+	ReferenceNo string `json:"reference_no,omitempty"` // 参考号
 }
 
 func (m LabelRequest) Validate() error {
 	return validation.ValidateStruct(&m,
-		validation.Field(&m.OrderCode, validation.Required.Error("订单号不能为空")),
+		validation.Field(&m.OrderCode, validation.When(m.ReferenceNo == "", validation.Required.Error("订单号/参考号必须填写其中一个"))),
+		validation.Field(&m.ReferenceNo, validation.When(m.OrderCode == "", validation.Required.Error("订单号/参考号必须填写其中一个"))),
 	)
 }
 
